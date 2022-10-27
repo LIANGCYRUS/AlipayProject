@@ -69,14 +69,32 @@ Confirmation_time_merge.loc[((Confirmation_time_merge['确认收货时间'].isnu
 Confirmation_time_merge['确认收货时间'] = pd.to_datetime(Confirmation_time_merge['确认收货时间'])
 df = Confirmation_time_merge.set_index('确认收货时间') # 将date设置为index
 
-# iinput=input('请输入年月')
-#
-# print(type(df[iinput]))
+this_month_input = input('请输入需要结算的年月份（2022-10）:')
+this_month = df[this_month_input]
+# print(this_month)
+
+
+AAS = Confirmation_time_merge.loc[(Confirmation_time_merge['备注'] == '售后退款')]
+
+print(AAS)
 
 file_name = 'RAW_MERGE.xlsx'
 Confirmation_time_merge.to_excel(file_name)
 print(file_name+'导出成功')
 
+
+wb = xw.Book('raw/template.xlsx')
+ws = wb.sheets[0]
+ws2 = wb.sheets[1]
+
+range2 = ws.range('D:E')
+range2.api.NumberFormat ="@"
+# # 进行赋值
+ws.range('C9').options(pd.DataFrame, index=True).value = this_month
+ws.range('B1:Z10000').columns.autofit()
+
+ws2.range('C9').options(pd.DataFrame, index=True).value = AAS
+ws2.range('B1:Z10000').columns.autofit()
 
 '''
 ********** 代码说明 **********
@@ -87,21 +105,3 @@ print(file_name+'导出成功')
 5、将确认收货时间仍然为空白的在备注列上标记分销订单
 6、最后将备注上剩下的标注成为时间，以后的话，按照输入的年月，进行分类
 '''
-
-#mode='a', engine='openpyxl' 很重要，如果不加的话，原始文件就会被覆盖
-# writer = pd.ExcelWriter(file_name, mode='a', engine='openpyxl')
-#
-# input_time = input('请输入年月：例 2022-10')
-#
-# split_list = ['分销订单']
-#
-# a = df[input_time]
-# a.to_excel(writer,sheet_name=input_time)
-#
-# for i in split_list:
-#     a1 = Confirmation_time_merge[Confirmation_time_merge['备注'] == i]
-#     a1.to_excel(writer,sheet_name=i)
-#
-#
-#
-# writer.save()
