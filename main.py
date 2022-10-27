@@ -65,36 +65,51 @@ Confirmation_time_merge = pd.merge(AlipayLilst,TmgOrderLilst,on='Partner_transac
 Confirmation_time_merge.loc[(Confirmation_time_merge['Type'] == 'R') ,'备注'] = AS
 Confirmation_time_merge.loc[(Confirmation_time_merge['确认收货时间'] == 0) ,'备注'] = NA
 Confirmation_time_merge.loc[((Confirmation_time_merge['确认收货时间'].isnull()) & (Confirmation_time_merge['备注'].isnull())) ,'备注'] = DG
-
+Confirmation_time_merge.loc[(Confirmation_time_merge['确认收货时间'].isnull())] = 0
 Confirmation_time_merge['确认收货时间'] = pd.to_datetime(Confirmation_time_merge['确认收货时间'])
-df = Confirmation_time_merge.set_index('确认收货时间') # 将date设置为index
+Confirmation_time_merge['month'] = Confirmation_time_merge['确认收货时间'].apply(lambda x:x.strftime('%Y-%m'))
 
-this_month_input = input('请输入需要结算的年月份（2022-10）:')
-this_month = df[this_month_input]
-# print(this_month)
+# Confirmation_time_merge['Iden2']=[x[:7] for x in Confirmation_time_merge['确认收货时间']]
+
+# print(AA)
+
+# Confirmation_time_merge['备注'].fillna(Confirmation_time_merge['确认收货时间'].dt.month, inplace=True)
+
+# Confirmation_time_merge['确认收货时间'] = pd.to_datetime(Confirmation_time_merge['确认收货时间'])
+
+
+# for i in Confirmation_time_merge['确认收货时间']:
+#     print(str(i.value)[:8])
+
+
+# df = Confirmation_time_merge.set_index('确认收货时间') # 将date设置为index
+#
+# this_month_input = input('请输入需要结算的年月份（2022-10）:')
+# this_month = df[this_month_input]
+# # print(this_month)
 
 
 AAS = Confirmation_time_merge.loc[(Confirmation_time_merge['备注'] == '售后退款')]
 
-print(AAS)
+# print(AAS)
 
 file_name = 'RAW_MERGE.xlsx'
 Confirmation_time_merge.to_excel(file_name)
 print(file_name+'导出成功')
 
 
-wb = xw.Book('raw/template.xlsx')
-ws = wb.sheets[0]
-ws2 = wb.sheets[1]
-
-range2 = ws.range('D:E')
-range2.api.NumberFormat ="@"
-# # 进行赋值
-ws.range('C9').options(pd.DataFrame, index=True).value = this_month
-ws.range('B1:Z10000').columns.autofit()
-
-ws2.range('C9').options(pd.DataFrame, index=True).value = AAS
-ws2.range('B1:Z10000').columns.autofit()
+# wb = xw.Book('raw/template.xlsx')
+# ws = wb.sheets[0]
+# ws2 = wb.sheets[1]
+#
+# range2 = ws.range('D:E')
+# range2.api.NumberFormat ="@"
+# # # 进行赋值
+# ws.range('C9').options(pd.DataFrame, index=True).value = this_month
+# ws.range('B1:Z10000').columns.autofit()
+#
+# ws2.range('C9').options(pd.DataFrame, index=True).value = AAS
+# ws2.range('B1:Z10000').columns.autofit()
 
 '''
 ********** 代码说明 **********
