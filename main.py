@@ -118,20 +118,22 @@ this_month = Confirmation_time_merge.loc[(Confirmation_time_merge['month'] == th
 AAS = Confirmation_time_merge.loc[(Confirmation_time_merge['备注'] == '售后退款')]
 DG = Confirmation_time_merge.loc[(Confirmation_time_merge['备注'] == DG)]
 CPS = Confirmation_time_merge.loc[(Confirmation_time_merge['是否淘宝客单'] == '是')]
-#
-#
-# # print(AAS)
-#
+
+
+
+# 导出原始合并后的文件
 file_name = 'RAW_MERGE.xlsx'
 Confirmation_time_merge.to_excel(file_name)
 print(file_name+'导出成功')
-#
 
+# 读取模板
 wb = xw.Book('raw/template.xlsx')
-ws = wb.sheets[0]
-ws2 = wb.sheets[1]
-ws3 = wb.sheets[2]
-ws4 = wb.sheets[3]
+ws = wb.sheets['STORE_LIST']
+ws2 = wb.sheets['DG_LIST']
+ws3 = wb.sheets['AS_LIST']
+ws4 = wb.sheets['CPS_LIST']
+
+
 
 range2 = ws.range('C:D')
 range2.api.NumberFormat ="@"
@@ -145,10 +147,12 @@ range4.api.NumberFormat ="@"
 range5 = ws4.range('C:D')
 range5.api.NumberFormat ="@"
 
-# # 进行赋值
-ws.range('B9').options(pd.DataFrame, index=True).value = this_month
-ws.range('B1:Z10000').columns.autofit()
 
+
+
+# # 进行赋值
+ws.range('B9').options(pd.DataFrame, index=True,).value = this_month
+ws.range('B1:Z10000').columns.autofit()
 
 ws2.range('B9').options(pd.DataFrame, index=True).value = DG
 ws2.range('B1:Z10000').columns.autofit()
