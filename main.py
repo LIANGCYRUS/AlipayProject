@@ -53,6 +53,8 @@ TmgOrderLilst.rename(columns={'订单编号':'Partner_transaction_id'}, inplace=
 # CPS文件自带\t，所以要去掉
 CPSOrderLilst = CPSOrderLilst.replace(r'\t','', regex=True)
 
+
+
 A = pd.merge(TmgOrderLilst,CPSOrderLilst,how='outer',left_on='Partner_transaction_id',right_on='淘宝父订单编号')
 
 
@@ -60,12 +62,14 @@ def check_cps(a,b):
     if a == b:
         return '是'
     else:
-        return '否'
+        return ''
 
 
-A['是否淘宝客单'] = A.apply(lambda x : check_cps(x['Partner_transaction_id'],x['淘宝父订单编号']),axis = 1)
+A['淘宝客'] = A.apply(lambda x : check_cps(x['Partner_transaction_id'],x['淘宝父订单编号']),axis = 1)
 
-TmgOrderLilst = A[['Partner_transaction_id','确认收货时间','是否淘宝客单']]
+TmgOrderLilst = A[['Partner_transaction_id','确认收货时间','淘宝客']]
+
+TmgOrderLilst.to_excel('check_cps.xlsx')
 
 
 TmgOrderLilst['确认收货时间'] = TmgOrderLilst['确认收货时间'].fillna(NAN) #将空值用N/A替换
@@ -83,11 +87,14 @@ TmgOrderLilst['确认收货时间'] = TmgOrderLilst['确认收货时间'].fillna
 Confirmation_time_merge = pd.merge(AlipayLilst,TmgOrderLilst,on='Partner_transaction_id',how='left')
 
 # 先把Type为R的在备注上标记AS
-Confirmation_time_merge.loc[(Confirmation_time_merge['Type'] == 'R') ,'备注'] = AS
+Confirmation_time_merge.loc[(Confirmation_time_merge['Type'] == 'R') ,'售后退款'] = "是"
+
 # 在合并之前,在天猫订单列表中,把空格都用0来表示,所以这里如果等于0的话,就表示没有确认收货时间.为什么要写0是因为下面的操作,要换算成为时间,如果用文本来填充的话,会出错.
-Confirmation_time_merge.loc[(Confirmation_time_merge['确认收货时间'] == 0) ,'备注'] = NA
+Confirmation_time_merge.loc[(Confirmation_time_merge['确认收货时间'] == 0) ,'确认收货'] = '否'
+
 # 再把确认时间为空的以及备注也是空的,那么可以判断为分销订单了
-Confirmation_time_merge.loc[((Confirmation_time_merge['确认收货时间'].isnull()) & (Confirmation_time_merge['备注'].isnull())) ,'备注'] = DG
+Confirmation_time_merge.loc[((Confirmation_time_merge['确认收货时间'].isnull()) & (Confirmation_time_merge['备注'].isnull())) ,'地宫单'] = "是"
+
 # 把所有订单种类标记后，再把确认收货时间为空的单元格填充为0，以便下一步转换成为时间类型
 Confirmation_time_merge.loc[(Confirmation_time_merge['确认收货时间'].isnull()) ,'确认收货时间'] = 0
 
@@ -104,20 +111,23 @@ Confirmation_time_merge.loc[(Confirmation_time_merge['确认收货时间'].isnul
 
 # 把文本型的时间转换成为时间类型
 Confirmation_time_merge['确认收货时间'] = pd.to_datetime(Confirmation_time_merge['确认收货时间'])
+
 # 提取时间的年月,标记到新的一列,这一列准备用于区分确认收货时间
-Confirmation_time_merge['month'] = Confirmation_time_merge['确认收货时间'].apply(lambda x:x.strftime('%Y-%m'))
+Confirmation_time_merge['年月'] = Confirmation_time_merge['确认收货时间'].apply(lambda x:x.strftime('%Y-%m'))
 
 '''
 ********** 以上所有的订单类型已经区分完成 **********
 '''
 
 this_month_input = input('请输入需要结算的年月份（2022-10）:')
-this_month = Confirmation_time_merge.loc[(Confirmation_time_merge['month'] == this_month_input) & (Confirmation_time_merge['是否淘宝客单'] == '否')]
+
+# 将输入的年月与年月的列以及是否淘宝客单为否的数据导出到this month
+this_month = Confirmation_time_merge.loc[(Confirmation_time_merge['年月'] == this_month_input) & (Confirmation_time_merge['淘宝客'] == '')]
 
 
 AAS = Confirmation_time_merge.loc[(Confirmation_time_merge['备注'] == '售后退款')]
-DG = Confirmation_time_merge.loc[(Confirmation_time_merge['备注'] == DG)]
-CPS = Confirmation_time_merge.loc[(Confirmation_time_merge['是否淘宝客单'] == '是')]
+DG = Confirmation_time_merge.loc[(Confirmation_time_merge['地宫单'] == DG)]
+CPS = Confirmation_time_merge.loc[(Confirmation_time_merge['淘宝客'] == '是')]
 
 
 
